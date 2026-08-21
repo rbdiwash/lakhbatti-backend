@@ -1,14 +1,14 @@
 import express from "express";
-import { prisma } from "./lib/prisma.ts";
 import cors from "cors";
 import employeeRoutes from "./routes/employee.ts";
+import jobRoutes from "./routes/job.ts";
 
 const app = express();
 
 app.use(
   cors({
     origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   }),
@@ -20,6 +20,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api/employee", employeeRoutes);
+app.use("/api/jobs", jobRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello World");
@@ -27,4 +28,5 @@ app.get("/", (req, res) => {
 
 app.listen(8000, () => {
   console.log("Server is running on port 8000");
+  console.log("http://localhost:8000");
 });
