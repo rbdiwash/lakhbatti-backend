@@ -73,6 +73,7 @@ router.get("/list", async (req, res) => {
     const hasPoliceCheck = asBool(req.query.hasPoliceCheck);
     const hasWorkingWithChildren = asBool(req.query.hasWorkingWithChildren);
     const yearsExperience = asString(req.query.yearsExperience);
+    const preferredTimeSlots = asList(req.query.preferredTimeSlots);
 
     const where: Prisma.EmployeeRegistrationWhereInput = {};
 
@@ -101,10 +102,8 @@ router.get("/list", async (req, res) => {
     if (preferredDays.length) {
       where.preferredDays = { hasSome: preferredDays };
     }
-
-    const days = asList(preferredDays);
-    if (days.length) {
-      where.preferredDays = { hasSome: days };
+    if (preferredTimeSlots.length) {
+      where.preferredTimeSlots = { hasSome: preferredTimeSlots };
     }
     if (willingToTravel !== undefined) where.willingToTravel = willingToTravel;
     if (hasDriverLicense !== undefined) {

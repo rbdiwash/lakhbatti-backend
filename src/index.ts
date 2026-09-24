@@ -2,6 +2,9 @@ import express from "express";
 import cors from "cors";
 import employeeRoutes from "./routes/employee.ts";
 import jobRoutes from "./routes/job.ts";
+import calloutFeeRoutes from "./routes/callout-fee.ts";
+import quoteRoutes from "./routes/quote.ts";
+import pricingRoutes from "./routes/pricing.ts";
 
 const app = express();
 
@@ -21,6 +24,9 @@ app.get("/health", (req, res) => {
 
 app.use("/api/employee", employeeRoutes);
 app.use("/api/jobs", jobRoutes);
+app.use("/api/quotes", quoteRoutes);
+app.use("/api/settings/pricing", pricingRoutes);
+app.use("/api/settings/call-out-fee", calloutFeeRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello World");

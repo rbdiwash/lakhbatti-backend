@@ -36,7 +36,7 @@ model EmployeeRegistration {
 
   workType                  String
   preferredDays             String[]
-  preferredTimeSlots        Json
+  preferredTimeSlots        String[]
   daySlots                  Json
   urgency                   String
   expectedPayRate           String
@@ -128,36 +128,97 @@ model Job {
   employeeId    String?
   employee      EmployeeRegistration? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
   invoices      Invoice[]
+  quotes        Quote[]
   createdAt     DateTime              @default(now())
   updatedAt     DateTime              @updatedAt
 }
 
 model Invoice {
-  id         String                @id @default(cuid())
-  number     String                @unique
+  id         String               @id @default(cuid())
+  number     String               @unique
   amount     String
-  status     InvoiceStatus         @default(DRAFT)
+  status     InvoiceStatus        @default(DRAFT)
   dueDate    DateTime?
-  notes      String                @default("")
+  notes      String               @default("")
   employeeId String
-  employee   EmployeeRegistration  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employee   EmployeeRegistration @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   jobId      String?
-  job        Job?                  @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  job        Job?                 @relation(fields: [jobId], references: [id], onDelete: SetNull)
   payments   Payment[]
-  createdAt  DateTime              @default(now())
-  updatedAt  DateTime              @updatedAt
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
 }
 
 model Payment {
-  id         String                @id @default(cuid())
+  id         String               @id @default(cuid())
   amount     String
-  method     String                @default("bank-transfer")
-  status     PaymentStatus         @default(COMPLETED)
-  paidAt     DateTime              @default(now())
-  reference  String                @default("")
+  method     String               @default("bank-transfer")
+  status     PaymentStatus        @default(COMPLETED)
+  paidAt     DateTime             @default(now())
+  reference  String               @default("")
   employeeId String
-  employee   EmployeeRegistration  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employee   EmployeeRegistration @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   invoiceId  String?
-  invoice    Invoice?              @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
-  createdAt  DateTime              @default(now())
+  invoice    Invoice?             @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  createdAt  DateTime             @default(now())
+}
+
+/// Singleton settings row — always use id "default" (upsert, never create many).
+model CalloutFee {
+  id         String   @id @default("default")
+  amount     Float    @default(49)
+  enabled    Boolean  @default(true)
+  notes      String   @default("Charged for on-site quote visits; deducted from the final job invoice.")
+  deductible Boolean  @default(true)
+  waiveAbove Float    @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+enum QuoteStatus {
+  NEW
+  CONTACTED
+  QUOTED
+  ACCEPTED
+  DECLINED
+}
+
+/// Quote requests submitted from the public website quote form.
+model Quote {
+  id              String      @id @default(cuid())
+  category        String
+  serviceType     String      @default("")
+  /// Service-specific answers (areas, rooms, garden tasks, lawn size, extras...).
+  details         Json        @default("{}")
+  dateFrom        String      @default("")
+  dateTo          String      @default("")
+  frequency       String      @default("")
+  quoteMode       String      @default("")
+  callOutAccepted Boolean     @default(false)
+  callOutFee      Float?
+  name            String
+  email           String
+  phone           String      @default("")
+  address         String      @default("")
+  /// Compressed image data URLs uploaded with digital quotes.
+  images          String[]
+  imageCount      Int         @default(0)
+  status          QuoteStatus @default(NEW)
+  quotedAmount    String      @default("")
+  adminNotes      String      @default("")
+  jobId           String?
+  job             Job?        @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+/// Singleton pricing config — always id "default". `config` shape lives in src/lib/pricing.ts.
+model PricingSettings {
+  id        String   @id @default("default")
+  config    Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
